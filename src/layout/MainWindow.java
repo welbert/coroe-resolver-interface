@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
+import javax.swing.UIManager;
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -127,6 +128,7 @@ public class MainWindow extends JFrame {
 			public void run() {
 				try {
 					MainWindow frame = new MainWindow();
+					frame.setLocationRelativeTo(null);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -139,6 +141,7 @@ public class MainWindow extends JFrame {
 	 * Create the frame.
 	 */
 	public MainWindow() {
+		setTitle(".:Jogo da Coreografia:.");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 612, 393);
@@ -148,10 +151,14 @@ public class MainWindow extends JFrame {
 		contentPane.setLayout(null);
 		/* DEFINIÇÃO DOS PAINEIS DE IMAGENS */
 		imgDancarino1 = new ImagePanel();
+		imgDancarino1.setKeepImageSize(true);
+		imgDancarino1.setImageSizeFactor(3);
 		imgDancarino1.setBounds(34, 70, 77, 127);
 		contentPane.add(imgDancarino1);
 		
 		imgDancarino2 = new ImagePanel();
+		imgDancarino2.setKeepImageSize(true);
+		imgDancarino2.setImageSizeFactor(3);
 		imgDancarino2.setBounds(399, 72, 77, 127);
 		contentPane.add(imgDancarino2);
 		/* FIM DEFINIÇÃO DOS PAINEIS DE IMAGENS */
@@ -170,6 +177,7 @@ public class MainWindow extends JFrame {
 			for(int i = 0;i<sequenceNumber;i++){
 				listModel2.addElement(in.carregar()); 
 			}
+			in.fecha();
 		} catch (NumberFormatException | IOException e) {
 			try {
 				log.salvar(e.toString());
@@ -324,7 +332,6 @@ public class MainWindow extends JFrame {
 					
 					String dir = new File(".").getAbsolutePath();
 					out.reset();
-					@SuppressWarnings("unused")
 					Process process = new ProcessBuilder(
 							dir+"/solver","in.txt","out.txt").start();
 					try {
@@ -409,8 +416,7 @@ public class MainWindow extends JFrame {
 				try {
 					
 					String dir = new File(".").getAbsolutePath();
-					out.reset();
-					@SuppressWarnings("unused")					
+					out.reset();			
 					Process process = new ProcessBuilder(
 							dir+"/solver","in.txt","out.txt","--informed").start();
 					try {
@@ -461,5 +467,18 @@ public class MainWindow extends JFrame {
 		});
 		btnResolverInformada.setBounds(198, 325, 206, 25);
 		contentPane.add(btnResolverInformada);
+		
+		JLabel label = new JLabel("?");
+		label.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {				
+				Help.getInstance().setVisible(true);
+			}
+		});
+		label.setForeground(UIManager.getColor("Button.darkShadow"));
+		label.setBackground(UIManager.getColor("Button.highlight"));
+		label.setHorizontalAlignment(SwingConstants.CENTER);
+		label.setBounds(590, 2, 15, 15);
+		contentPane.add(label);
 	}
 }
