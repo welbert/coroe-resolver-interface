@@ -30,7 +30,7 @@ import java.awt.Font;
 public class MainWindow extends JFrame {
 	
 	//Variaveis Globais ----------------------------------------
-	private int sleep = 1000/2;
+	private int sleep = 1000*2/3;
 	private JPanel contentPane;
 	private ImagePanel imgDancarino1;
 	private ImagePanel imgDancarino2;
@@ -43,10 +43,11 @@ public class MainWindow extends JFrame {
 	private JButton btnDanceDance;
 	private JTextField lblPassosDancarino1;
 	private JTextField lblPassosDancarino2;
-	private JButton btnResolver;
+	private JButton btnResolverCega;
 	private JLabel lbldance2now;
 	private JLabel lbldance1now;
 	private boolean enabledDancer1=true,enabledDancer2=true;
+	private JButton btnResolverInformada;
 	//----------------------------------------------------------
 	
 
@@ -316,15 +317,19 @@ public class MainWindow extends JFrame {
 		lblPassosDancarino2.setEditable(false);
 		contentPane.add(lblPassosDancarino2);
 		
-		btnResolver = new JButton("Resolver");
-		btnResolver.addActionListener(new ActionListener() {
+		btnResolverCega = new JButton("Resolver (Cega)");
+		btnResolverCega.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					
 					String dir = new File(".").getAbsolutePath();
+					out.reset();
 					@SuppressWarnings("unused")
 					Process process = new ProcessBuilder(
 							dir+"/solver","in.txt","out.txt").start();
+					try {
+						process.waitFor();
+					} catch (InterruptedException e) {}
 					//String cmdexecute = cmd.ExecuteCmd("./solver in1.txt out.txt");
 					if(out.carregar().equals("1")){
 						listModelSolutionDancer1.clear();
@@ -350,7 +355,8 @@ public class MainWindow extends JFrame {
 						lblPassosDancarino2.setText(problemResult);
 						
 						btnDanceDance.doClick();
-						out.reset();
+
+						
 					
 					}else{
 						JOptionPane.showMessageDialog(contentPane, "Problema sem solução");
@@ -366,8 +372,8 @@ public class MainWindow extends JFrame {
 				}
 			}
 		});
-		btnResolver.setBounds(239, 257, 117, 25);
-		contentPane.add(btnResolver);
+		btnResolverCega.setBounds(216, 288, 151, 25);
+		contentPane.add(btnResolverCega);
 		
 		JButton btnLimpar = new JButton("Limpar");
 		btnLimpar.addActionListener(new ActionListener() {
@@ -396,5 +402,64 @@ public class MainWindow extends JFrame {
 		lbldance2now.setFont(new Font("Dialog", Font.BOLD, 40));
 		lbldance2now.setBounds(491, 70, 70, 127);
 		contentPane.add(lbldance2now);
+		
+		btnResolverInformada = new JButton("Resolver (Informada)");
+		btnResolverInformada.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					
+					String dir = new File(".").getAbsolutePath();
+					out.reset();
+					@SuppressWarnings("unused")					
+					Process process = new ProcessBuilder(
+							dir+"/solver","in.txt","out.txt","--informed").start();
+					try {
+						process.waitFor();
+					} catch (InterruptedException e) {}
+					//String cmdexecute = cmd.ExecuteCmd("./solver in1.txt out.txt");
+					
+					if(out.carregar().equals("1")){
+						listModelSolutionDancer1.clear();
+						listModelSolutionDancer2.clear();
+						String problemResult="";
+						String index[],aux;
+						
+						out.carregar();
+						index=out.carregar().split(" ");
+						for(int i = 0;i<index.length;i++){
+							aux = listModel.getElementAt(Integer.parseInt(index[i]));
+							problemResult+=aux;
+							listModelSolutionDancer1.addElement(aux);
+						}
+						out.carregar();
+						index=out.carregar().split(" ");
+						for(int i = 0;i<index.length;i++){
+							aux = listModel2.getElementAt(Integer.parseInt(index[i]));
+							listModelSolutionDancer2.addElement(aux);
+						}
+						
+						lblPassosDancarino1.setText(problemResult);
+						lblPassosDancarino2.setText(problemResult);
+						
+						btnDanceDance.doClick();
+						
+						
+					
+					}else{
+						JOptionPane.showMessageDialog(contentPane, "Problema sem solução");
+					}
+				} catch (IOException e) {
+					try {
+						JOptionPane.showMessageDialog(contentPane, "Falha ao executar o solver");
+						log.salvar(e.toString());
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+		btnResolverInformada.setBounds(198, 325, 206, 25);
+		contentPane.add(btnResolverInformada);
 	}
 }
