@@ -562,7 +562,7 @@ public class MainWindow extends JFrame {
 		JButton btnImportar = new JButton("Importar");
 		btnImportar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				 JFileChooser fc = new JFileChooser();
+				 JFileChooser fc = new JFileChooser(); 
 				 fc.setCurrentDirectory(new File("."));
                  int res = fc.showOpenDialog(null); //Abre o dialogo para selecionar os arquivos
                  

@@ -36,7 +36,7 @@ public class Help extends JFrame {
 	private String getMessageTutorial(){
 		String message="";
 		
-		switch (page) {
+		switch (page) { 
 		case 1:
 			message+="Essa é a visualização inicial do jogo.\n"
 					+ " Os passos dos dançarinos são obtidos pelo arquivo 'in.txt' na pasta do executável,"
