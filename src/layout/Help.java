@@ -8,18 +8,15 @@ import javax.swing.border.EmptyBorder;
 
 import utils.ImagePanel;
 
-import javax.swing.JLabel;
-
 import java.io.IOException;
 
 import javax.swing.JButton;
-import javax.swing.border.LineBorder;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-import java.awt.SystemColor;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 @SuppressWarnings("serial")
 public class Help extends JFrame {
@@ -34,13 +31,16 @@ public class Help extends JFrame {
 	private int page = 1;
 	private static final int MAX_PAGE = 9;
 
+
+	/** Descrição: Retorna a mensagem de ajuda que deve ser mostrado na tela baseado na pagina atual*/
 	private String getMessageTutorial(){
 		String message="";
 		
 		switch (page) {
 		case 1:
 			message+="Essa é a visualização inicial do jogo.\n"
-					+ " Os passos dos dançarinos são obtidos pelo arquivo 'in.txt' na pasta do executavel.\n"
+					+ " Os passos dos dançarinos são obtidos pelo arquivo 'in.txt' na pasta do executável,"
+					+ 	" mas podem ser alterados pelo botão importar no canto superior esquerdo.\n"
 					+ " A entrada é dada por: \n"
 					+ " Primeira linha contém um numero inteiro n seguidas por n linhas contendo os passos do dançarino 1"
 						+ " nessas linhas.\n"
@@ -49,35 +49,41 @@ public class Help extends JFrame {
 			break;
 			
 		case 2:
-			message+="";
+			message+="Para selecionar os passos, clique em algum passo da lista e espere o dançarino executar seus movimentos.";
 			break;	
 			
 		case 3:
-			message+="";
+			message+="Os passos selecionados ficaram disponíveis em na seleção 1.\n"
+					+ "Os passos que estão sendo dançados ficam na seleção 2.\n"
+					+ "A junção de todos passos dançados ficam na seleção 3.";
 			break;
 			
 		case 4:
-			message+="";
+			message+="Caso você tenha selecionado um passo errado, não se preocupe, você pode clicar na lista para removê-lo.";
 			break;
 
 		case 5:
-			message+="";
+			message+="E se você selecionou passos demais e quer limpar tudo? Não tem problema, aperte o botão 'Limpar'.";
 			break;
 			
 		case 6:
-			message+="";
+			message+="Fez um conjunto de passos e quer verificar se acertou? Então dance, dance! e veja o resultado.";
 			break;
 			
 		case 7:
-			message+="";
+			message+="Cansou de tentar? Você pode pedir ao programa mostrar uma resposta pra você, caso ela exista.\n"
+					+ "A busca pela resposta é o algoritmo de 'Busca em profundidade', ela não vai te dar "
+					+ "garantia do menor passo em comum, mas pelo menos mata sua curiosidade de saber a resposta "
+					+ "ou economiza seu tempo.";
 			break;
 			
 		case 8:
-			message+="";
+			message+="Resolve o problema utilizando a 'Branch and Bound', buscando a menor sequência de passo em comum"
+					+ " para se formar a coreografia.";
 			break;
 			
 		case 9:
-			message+="";
+			message+="Parabéns, você completou o desafio! Mas não será que existem passos menores?";
 			break;
 
 		default:
@@ -94,16 +100,26 @@ public class Help extends JFrame {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 629, 581);
 		contentPane = new JPanel();
+		contentPane.setFocusable(true);
+		contentPane.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode()==KeyEvent.VK_LEFT)
+					btnVoltar.doClick();
+				else if(e.getKeyCode()==KeyEvent.VK_RIGHT)
+					btnAvancar.doClick();
+			}
+		});
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
 		ImagePanel imgPanelTutorial = new ImagePanel();
 		imgPanelTutorial.setBorder(new BevelBorder(BevelBorder.RAISED, Color.WHITE, null, null, null));
-		imgPanelTutorial.setKeepImageSize(false);
+		imgPanelTutorial.setKeepImageSize(false);//A imagem terá o tamanho do canvas
 		imgPanelTutorial.setBounds(12, 12, 603, 385);
 		try {
-			imgPanelTutorial.setImage("IMG/Help1.png");
+			imgPanelTutorial.setImage("IMG/Help1.png");//Primeira imagem do tutorial
 		} catch (IOException e) {}
 		contentPane.add(imgPanelTutorial);
 		
@@ -120,11 +136,12 @@ public class Help extends JFrame {
 		btnVoltar = new JButton("Voltar");
 		btnVoltar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(page>1 && page<=MAX_PAGE){
+				if(page>1 && page<=MAX_PAGE){//Evita que passe do numero de imagens
 					try {
 						page--;
 						btnAvancar.setEnabled(true);
-						imgPanelTutorial.setImage("IMG/Help"+page+".png");						
+						imgPanelTutorial.setImage("IMG/Help"+page+".png");
+						lblMensagem.setText(getMessageTutorial());
 						if(page==1)
 							btnVoltar.setEnabled(false);
 					} catch (IOException ex) {}
@@ -138,11 +155,12 @@ public class Help extends JFrame {
 		btnAvancar = new JButton("Avançar");
 		btnAvancar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(page>=1 && page<MAX_PAGE){
+				if(page>=1 && page<MAX_PAGE){//Evita que passe do numero de imagens
 					try {
 						page++;
 						btnVoltar.setEnabled(true);
-						imgPanelTutorial.setImage("IMG/Help"+page+".png");						
+						imgPanelTutorial.setImage("IMG/Help"+page+".png");
+						lblMensagem.setText(getMessageTutorial());
 						if(page==MAX_PAGE)
 							btnAvancar.setEnabled(false);
 					} catch (IOException ex) {}
@@ -154,7 +172,7 @@ public class Help extends JFrame {
 		contentPane.add(btnAvancar);
 	}
 	
-	public static Help getInstance(){
+	public static Help getInstance(){ //Singleton
 		if(instance == null)
 			instance = new Help();
 		return instance;

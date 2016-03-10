@@ -9,7 +9,6 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import utils.Arquivo;
-import utils.Comandos;
 import utils.ImagePanel;
 
 import java.io.File;
@@ -22,9 +21,13 @@ import java.awt.event.MouseEvent;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
+import java.awt.HeadlessException;
+
 import javax.swing.UIManager;
 
 @SuppressWarnings("serial")
@@ -32,11 +35,11 @@ public class MainWindow extends JFrame {
 	
 	//Variaveis Globais ----------------------------------------
 	private int sleep = 1000*2/3;
+	private String shortResult = "";
 	private JPanel contentPane;
 	private ImagePanel imgDancarino1;
 	private ImagePanel imgDancarino2;
 	private static Arquivo in,out,log;
-	private Comandos cmd = new Comandos();
 	private JList<String> listDancarino1,listDancarino2,listSolutionDancer1,listSolutionDancer2;
 	private DefaultListModel<String> listModelSolutionDancer1 = new DefaultListModel<String>();  		
 	private DefaultListModel<String> listModelSolutionDancer2 = new DefaultListModel<String>();
@@ -54,6 +57,11 @@ public class MainWindow extends JFrame {
 
 	//Funções --------------------------------------------------
 	
+	
+	/** Descrição: Seta a imagem no painel.
+	 *  Parametros: imgPanel - Painel que sofrerá a mudança.
+	 * 				pathImage - Caminho da imagem.
+	 *  Retorno: boolean - se conseguiu ou não alterar a imagem.*/
 	private boolean setImagePanel(ImagePanel imgPanel, String pathImage){
 		try{
 			imgPanel.setImage(pathImage);
@@ -63,6 +71,37 @@ public class MainWindow extends JFrame {
 		}
 	}
 	
+	/** Descrição: Obtem o menor numero de passos da coreografia.
+	 *  Parametros: Nenhum.
+	 *  Retorno: String - A menor coreografia.*/
+	private String getMenorPassos(){
+		String dir = new File(".").getAbsolutePath();			
+		try {
+			String result="";
+			out.reset();
+			Process process = new ProcessBuilder(
+					dir+"/solver",in.getFileName(),"out.txt","--informed").start();		
+			process.waitFor();
+			if(out.carregar().equals("1")){
+				String index[];
+				out.carregar();
+				index=out.carregar().split(" ");
+				for(int i = 0;i<index.length;i++)
+					result += listModel.getElementAt(Integer.parseInt(index[i]));
+				
+				return result;					
+			}
+			
+		} catch (InterruptedException|IOException e) {}
+		return "";
+	}
+	
+	/** Descrição: Altera o imgPanel baseado na sequencia de passos.
+	 *  Parametros: aList - Qual lista que se obterá a sequencia de passos.
+	 *  			aImgPanel - ImgPanel que sofrerá a mudança.
+	 *  			aLabel - Label que mostrará qual passo está sendo dançado.
+	 *  			numberDancer - Numero do dançarino que está dançando no momento.
+	 *  Retorno: Void.*/
 	private void changeImageFPS(JList<String> aList,ImagePanel aImgPanel,JLabel aLabel,String numberDancer){
 		String selectedText = aList.getSelectedValue().toString();
 		for(int i = 0;i<selectedText.length();i++){
@@ -77,6 +116,9 @@ public class MainWindow extends JFrame {
 		}
 	}
 	
+	/** Descrição: Altera o imgPanel baseado na sequencia de passos dos dois dançarinos.
+	 *  Parametros: Nenhum.
+	 *  Retorno: Void.*/
 	private void changeImageFPSALL(){
 		String selectedText1 = lblPassosDancarino1.getText();
 		String selectedText2 = lblPassosDancarino2.getText();
@@ -98,6 +140,10 @@ public class MainWindow extends JFrame {
 		}
 	}
 	
+	/** Descrição: Desabilita os controles do dançarino.
+	 *  Parametros: dancer = numero do dançarino
+	 *  			enabled = ativa/desativa.
+	 *  Retorno: Void.*/
 	private void disableDancer(int dancer, boolean enabled){
 		if(dancer==1){
 			enabledDancer1 = enabled;
@@ -110,29 +156,49 @@ public class MainWindow extends JFrame {
 		}
 	}
 	
+	/** Descrição: Função que carrega o arquivo e inicializa os dançarinos.
+	 *  Parametros: filePath = Caminho do arquivo.
+	 *  Retorno: boolean = executou com sucesso.*/
+	private boolean init(String filePath){
+		try {
+			in = new Arquivo(filePath);
+			int sequenceNumber;
+			sequenceNumber = Integer.parseInt(in.carregar());
+			for(int i = 0;i<sequenceNumber;i++){
+				listModel.addElement(in.carregar()); 
+			}
+			sequenceNumber = Integer.parseInt(in.carregar());
+			for(int i = 0;i<sequenceNumber;i++){
+				listModel2.addElement(in.carregar()); 
+			}
+			in.fecha();
+		} catch (NumberFormatException | IOException e) {
+			try {
+				log.salvar(e.toString());
+			} catch (IOException e1) {}
+			return false;
+		}
+		return true;
+	}
+	
 	//----------------------------------------------------------
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
 		try {
-			log = new Arquivo("log");
-			in = new Arquivo("in");
-			out = new Arquivo("out");
+			log = new Arquivo("log.txt");
+			in = new Arquivo("in.txt");
+			out = new Arquivo("out.txt");
 			out.deletarArquivo();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		} catch (IOException e1) {}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					MainWindow frame = new MainWindow();
 					frame.setLocationRelativeTo(null);
 					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				} catch (Exception e) {}
 			}
 		});
 	}
@@ -149,7 +215,7 @@ public class MainWindow extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
-		/* DEFINIÇÃO DOS PAINEIS DE IMAGENS */
+		/* DEFINIÇÃO DOS PAINEIS DE IMAGENS ------------------------------------------------------------*/
 		imgDancarino1 = new ImagePanel();
 		imgDancarino1.setKeepImageSize(true);
 		imgDancarino1.setImageSizeFactor(3);
@@ -161,32 +227,17 @@ public class MainWindow extends JFrame {
 		imgDancarino2.setImageSizeFactor(3);
 		imgDancarino2.setBounds(399, 72, 77, 127);
 		contentPane.add(imgDancarino2);
-		/* FIM DEFINIÇÃO DOS PAINEIS DE IMAGENS */
+		/* FIM DEFINIÇÃO DOS PAINEIS DE IMAGENS ------------------------------------------------------------*/
 		
-		/* DEFINIÇÃO DAS LISTA E CARREGAMENTO DO ARQUIVO */
+		/* DEFINIÇÃO DAS LISTA ------------------------------------------------------------*/
 		listModel = new DefaultListModel<String>();  		
 		listModel2 = new DefaultListModel<String>();  
 		
-		try {
-			int sequenceNumber;
-			sequenceNumber = Integer.parseInt(in.carregar());
-			for(int i = 0;i<sequenceNumber;i++){
-				listModel.addElement(in.carregar()); 
-			}
-			sequenceNumber = Integer.parseInt(in.carregar());
-			for(int i = 0;i<sequenceNumber;i++){
-				listModel2.addElement(in.carregar()); 
-			}
-			in.fecha();
-		} catch (NumberFormatException | IOException e) {
-			try {
-				log.salvar(e.toString());
-			} catch (IOException e1) {}
-			JOptionPane.showMessageDialog(contentPane, "Falha ao carregar os valores iniciais.");
-		}
-		/* FIM DEFINIÇÃO DAS LISTA E CARREGAMENTO DO ARQUIVO */
+		init("in.txt");
+		shortResult = getMenorPassos();
+		/* FIM DEFINIÇÃO DAS LISTA ------------------------------------------------------------*/
 		
-		/* DEFINIÇÃO DO EVENTO CLICKED NA LISTA */
+		/* DEFINIÇÃO DO EVENTO CLICKED NA LISTA PARA ADICIONAR ------------------------------------------------------------*/
 		JScrollPane scrollListDancarino1 = new JScrollPane();
 		listDancarino1 = new JList<String>(listModel);
 		scrollListDancarino1.setViewportView(listDancarino1);
@@ -242,13 +293,14 @@ public class MainWindow extends JFrame {
 		});
 		scrollListDancarino2.setBounds(399, 209, 162, 104);
 		contentPane.add(scrollListDancarino2);
-		/* FIM DEFINIÇÃO DO EVENTO CLICKED NA LISTA */
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED NA LISTA PARA ADICIONAR------------------------------------------------------------*/
 		
 		JLabel lblJogoDaCoreografia = new JLabel("Jogo da Coreografia");
 		lblJogoDaCoreografia.setHorizontalAlignment(SwingConstants.CENTER);
 		lblJogoDaCoreografia.setBounds(216, 0, 151, 19);
 		contentPane.add(lblJogoDaCoreografia);
 		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED NA LISTA PARA REMOVER--------------------------------------------------------*/
 		JScrollPane scrollListSolutionDancer1 = new JScrollPane();
 		listSolutionDancer1 = new JList<String>(listModelSolutionDancer1);
 		listSolutionDancer1.addMouseListener(new MouseAdapter() {
@@ -289,6 +341,9 @@ public class MainWindow extends JFrame {
 		scrollListSolutionDancer2.setBounds(300, 70, 85, 127);
 		contentPane.add(scrollListSolutionDancer2);
 		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED NA LISTA PARA REMOVER--------------------------------------------------------*/
+		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO DANCE--------------------------------------------------------*/
 		btnDanceDance = new JButton("Dance, Dance!");
 		btnDanceDance.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -303,7 +358,11 @@ public class MainWindow extends JFrame {
 								disableDancer(2,true);
 								if(lblPassosDancarino1.getText().equals(lblPassosDancarino2.getText())
 										&&  !lblPassosDancarino1.getText().equals(""))
-									JOptionPane.showMessageDialog(contentPane, "Parabéns, você encontrou uma coreografia.");
+									if(shortResult.equals(lblPassosDancarino1.getText()))
+										JOptionPane.showMessageDialog(contentPane, "Parabéns!! Você encontrou a menor "
+												+ "coreografia!");
+									else
+										JOptionPane.showMessageDialog(contentPane, "Parabéns, você encontrou uma coreografia.");
 				            }
 				        }, 
 				        200 
@@ -314,6 +373,7 @@ public class MainWindow extends JFrame {
 		btnDanceDance.setBounds(218, 220, 151, 25);
 		contentPane.add(btnDanceDance);
 		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO DANCE--------------------------------------------------------*/
 	
 		lblPassosDancarino1 = new JTextField("");
 		lblPassosDancarino1.setEditable(false);
@@ -325,6 +385,7 @@ public class MainWindow extends JFrame {
 		lblPassosDancarino2.setEditable(false);
 		contentPane.add(lblPassosDancarino2);
 		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO RESOLVER CEGA--------------------------------------------------------*/
 		btnResolverCega = new JButton("Resolver (Cega)");
 		btnResolverCega.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -337,7 +398,6 @@ public class MainWindow extends JFrame {
 					try {
 						process.waitFor();
 					} catch (InterruptedException e) {}
-					//String cmdexecute = cmd.ExecuteCmd("./solver in1.txt out.txt");
 					if(out.carregar().equals("1")){
 						listModelSolutionDancer1.clear();
 						listModelSolutionDancer2.clear();
@@ -372,16 +432,16 @@ public class MainWindow extends JFrame {
 					try {
 						JOptionPane.showMessageDialog(contentPane, "Falha ao executar o solver");
 						log.salvar(e.toString());
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					} catch (IOException e1) {}
 				}
 			}
 		});
 		btnResolverCega.setBounds(216, 288, 151, 25);
 		contentPane.add(btnResolverCega);
 		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO RESOLVER CEGA--------------------------------------------------------*/
+		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO LIMPAR--------------------------------------------------------*/
 		JButton btnLimpar = new JButton("Limpar");
 		btnLimpar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -398,6 +458,8 @@ public class MainWindow extends JFrame {
 		btnLimpar.setBounds(252, 33, 82, 25);
 		contentPane.add(btnLimpar);
 		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO LIMPAR--------------------------------------------------------*/
+		
 		lbldance1now = new JLabel("");
 		lbldance1now.setHorizontalAlignment(SwingConstants.CENTER);
 		lbldance1now.setFont(new Font("Dialog", Font.BOLD, 40));
@@ -410,6 +472,7 @@ public class MainWindow extends JFrame {
 		lbldance2now.setBounds(491, 70, 70, 127);
 		contentPane.add(lbldance2now);
 		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO RESOLVER INFORMADA ----------------------------------------------------*/
 		btnResolverInformada = new JButton("Resolver (Informada)");
 		btnResolverInformada.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -422,7 +485,6 @@ public class MainWindow extends JFrame {
 					try {
 						process.waitFor();
 					} catch (InterruptedException e) {}
-					//String cmdexecute = cmd.ExecuteCmd("./solver in1.txt out.txt");
 					
 					if(out.carregar().equals("1")){
 						listModelSolutionDancer1.clear();
@@ -458,17 +520,19 @@ public class MainWindow extends JFrame {
 					try {
 						JOptionPane.showMessageDialog(contentPane, "Falha ao executar o solver");
 						log.salvar(e.toString());
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					} catch (IOException e1) {}
 				}
 			}
 		});
 		btnResolverInformada.setBounds(198, 325, 206, 25);
 		contentPane.add(btnResolverInformada);
 		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO RESOLVER INFORMADA ----------------------------------------------------*/
+		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED DO LABEL AJUDA ----------------------------------------------------*/
 		JLabel label = new JLabel("?");
+		label.setToolTipText("Clique para obter ajuda.");
+		label.setFont(new Font("Dialog", Font.BOLD, 14));
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {				
@@ -480,5 +544,39 @@ public class MainWindow extends JFrame {
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setBounds(590, 2, 15, 15);
 		contentPane.add(label);
+		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED DO LABEL AJUDA ----------------------------------------------------*/
+		
+		/* INICIO DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO IMPORTAR ----------------------------------------------------*/
+		JButton btnImportar = new JButton("Importar");
+		btnImportar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				 JFileChooser fc = new JFileChooser();
+                 int res = fc.showOpenDialog(null); //Abre o dialogo para selecionar os arquivos
+                 
+                 if(res == JFileChooser.APPROVE_OPTION){
+                	 btnLimpar.doClick();
+                	 listModel.clear();
+                	 listModel2.clear();
+                     File file = fc.getSelectedFile();  
+                     try {
+                    	if(!init(file.getCanonicalPath()))
+                    		JOptionPane.showMessageDialog(contentPane, "Falha ao carregar o arquivo, "
+                    				+ "verifique se o arquivo está no padrão.");
+                    	
+                    	shortResult = getMenorPassos();
+					} catch (HeadlessException | IOException e1) {
+						JOptionPane.showMessageDialog(contentPane, "Falha ao carregar o arquivo");
+						try {
+							log.salvar(e.toString());
+						} catch (IOException e2) {}
+					}
+                 }			
+			}
+		});
+		btnImportar.setBounds(12, -3, 104, 22);
+		contentPane.add(btnImportar);
+		
+		/* FIM DEFINIÇÃO DO EVENTO CLICKED DO BOTÃO RESOLVER INFORMADA ----------------------------------------------------*/
 	}
 }

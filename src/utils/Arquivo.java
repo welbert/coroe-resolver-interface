@@ -52,7 +52,7 @@ public class Arquivo  {
 	private BufferedReader br;
 
 	public Arquivo(String nome)throws IOException{		
-		nome = nome.concat(".txt");
+		//nome = nome.concat(".txt");
 		arquivo = new File(nome);
 		
 		String sep = "\\";
