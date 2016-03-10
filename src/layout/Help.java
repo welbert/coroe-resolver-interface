@@ -72,13 +72,13 @@ public class Help extends JFrame {
 			
 		case 7:
 			message+="Cansou de tentar? Você pode pedir ao programa mostrar uma resposta pra você, caso ela exista.\n"
-					+ "A busca pela resposta é o algoritmo de 'Busca em profundidade', ela não vai te dar "
+					+ "A busca pela resposta é o algoritmo de 'Busca em largura', ela não vai te dar "
 					+ "garantia do menor passo em comum, mas pelo menos mata sua curiosidade de saber a resposta "
 					+ "ou economiza seu tempo.";
 			break;
 			
 		case 8:
-			message+="Resolve o problema utilizando a 'Branch and Bound', buscando a menor sequência de passo em comum"
+			message+="Resolve o problema utilizando a 'A*', buscando a menor sequência de passo em comum"
 					+ " para se formar a coreografia.";
 			break;
 			
