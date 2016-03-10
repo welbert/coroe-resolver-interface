@@ -80,7 +80,7 @@ public class MainWindow extends JFrame {
 			String result="";
 			out.reset();
 			Process process = new ProcessBuilder(
-					dir+"/solver",in.getFileName(),"out.txt","--informed").start();		
+					dir+"/solver",in.getPathName(),"out.txt","--informed").start();		
 			process.waitFor();
 			if(out.carregar().equals("1")){
 				String index[];
@@ -154,6 +154,16 @@ public class MainWindow extends JFrame {
 			listDancarino2.setEnabled(enabled);
 			listSolutionDancer2.setEnabled(enabled);
 		}
+	}
+	
+	/** Descrição: Desabilita os controles do dançarino.
+	 *  Parametros: dancer = numero do dançarino
+	 *  			enabled = ativa/desativa.
+	 *  Retorno: Void.*/
+	private void disableButtons(boolean enabled){
+		btnDanceDance.setEnabled(enabled);
+		btnResolverCega.setEnabled(enabled);
+		btnResolverInformada.setEnabled(enabled);
 	}
 	
 	/** Descrição: Função que carrega o arquivo e inicializa os dançarinos.
@@ -349,6 +359,7 @@ public class MainWindow extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				disableDancer(1,false);
 				disableDancer(2,false);
+				disableButtons(false);
 				new java.util.Timer().schedule( 
 				        new java.util.TimerTask() {
 				            @Override
@@ -356,6 +367,7 @@ public class MainWindow extends JFrame {
 				            	changeImageFPSALL();
 				            	disableDancer(1,true);
 								disableDancer(2,true);
+								disableButtons(true);
 								if(lblPassosDancarino1.getText().equals(lblPassosDancarino2.getText())
 										&&  !lblPassosDancarino1.getText().equals(""))
 									if(shortResult.equals(lblPassosDancarino1.getText()))
@@ -390,11 +402,10 @@ public class MainWindow extends JFrame {
 		btnResolverCega.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					
 					String dir = new File(".").getAbsolutePath();
 					out.reset();
 					Process process = new ProcessBuilder(
-							dir+"/solver","in.txt","out.txt").start();
+							dir+"/solver",in.getPathName(),"out.txt").start();
 					try {
 						process.waitFor();
 					} catch (InterruptedException e) {}
@@ -481,7 +492,7 @@ public class MainWindow extends JFrame {
 					String dir = new File(".").getAbsolutePath();
 					out.reset();			
 					Process process = new ProcessBuilder(
-							dir+"/solver","in.txt","out.txt","--informed").start();
+							dir+"/solver",in.getPathName(),"out.txt","--informed").start();
 					try {
 						process.waitFor();
 					} catch (InterruptedException e) {}
